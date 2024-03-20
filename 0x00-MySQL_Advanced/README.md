@@ -5,7 +5,7 @@
 
 _For this project, we expect you to look at this concept:_
 
-*   [Advanced SQL](/concepts/555)
+*   [Advanced SQL](https://github.com/GideonBature/alx-backend-storage/tree/main/0x00-MySQL_Advanced/concept_pages)
 
 Resources
 ---------
