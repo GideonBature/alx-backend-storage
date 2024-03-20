@@ -2,4 +2,4 @@
 
 ## Topics covered:
 
-### 0x00. [MySQL Advanced](https://github.com/GideonBature/alx-backend-storage/tree/main/0x00-mysql_advanced)
+### 0x00. [MySQL Advanced](https://github.com/GideonBature/alx-backend-storage/tree/main/0x00-MySQL_Advanced)
