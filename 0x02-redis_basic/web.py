@@ -6,8 +6,8 @@ import requests
 import redis
 from functools import wraps
 
-# Initialize a Redis connection
 redis_client = redis.Redis()
+
 
 def count_access(func):
     """Decorator to count the number of accesses to a URL."""
@@ -18,6 +18,7 @@ def count_access(func):
         redis_client.incr(f"count:{url}")
         return func(*args, **kwargs)
     return wrapper
+
 
 def cache_page(expiration_time=10):
     """Decorator to cache the page content with an expiration time."""
@@ -37,6 +38,7 @@ def cache_page(expiration_time=10):
                 return content
         return wrapper
     return decorator
+
 
 @count_access
 @cache_page(expiration_time=10)
