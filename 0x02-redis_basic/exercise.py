@@ -9,18 +9,33 @@ import functools
 from typing import Union, Callable, Optional
 
 
-def replay(fn: Callable) -> None:
-    """Replay
-    """
-    redis = redis.Redis()
-    input_key = fn.__qualname__ + ":inputs"
-    output_key = fn.__qualname__ + ":outputs"
+def replay(method: Callable) -> None:
+    """Display the history of calls of a particular function.
 
-    count = redis.llen(input_key)
-    for i in range(count):
-        input = redis.lindex(input_key, i)
-        output = redis.lindex(output_key, i)
-        print(f"{input}: {output}")
+    Args:
+        method (Callable): The function to display the history for.
+    """
+    r = method.__self__._redis
+    qualname = method.__qualname__
+    inputs_key = f"{qualname}:inputs"
+    outputs_key = f"{qualname}:outputs"
+
+    num_calls = r.get(qualname)
+    if num_calls:
+        num_calls = num_calls.decode('utf-8')
+    else:
+        num_calls = '0'
+
+    inputs = r.lrange(inputs_key, 0, -1)
+    outputs = r.lrange(outputs_key, 0, -1)
+
+    print(f"{qualname} was called {num_calls} times:")
+
+    for input_, output in zip(inputs, outputs):
+        input_ = input_.decode('utf-8')
+        output = output.decode('utf-8')
+        print(f"{qualname}(*{input_}) -> {output}")
+
 
 def count_calls(method: Callable) -> Callable:
     """Count calls
@@ -33,6 +48,7 @@ def count_calls(method: Callable) -> Callable:
         self._redis.incr(key)
         return method(self, *args, **kwargs)
     return wrapper
+
 
 def call_history(method: Callable) -> Callable:
     """Call history
@@ -50,6 +66,7 @@ def call_history(method: Callable) -> Callable:
 
         return result
     return wrapper
+
 
 class Cache:
     """Cache class
@@ -73,8 +90,8 @@ class Cache:
         self._redis.set(name=key, value=data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable] = None) -> Union[str, bytes,
-                                                                    int, float]:
+    def get(self, key: str, fn: Optional[Callable] =
+            None) -> Union[str, bytes, int, float]:
         """Get from redis
         """
         value = self._redis.get(name=key)
