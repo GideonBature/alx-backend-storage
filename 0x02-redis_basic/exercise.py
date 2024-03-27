@@ -11,10 +11,11 @@ class Cache:
     __init__ method to initialize redis
     store method to generate random key
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize redis
         """
         self._redis = redis.Redis()
+        self._redis.flushdb()
 
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Generate random key
