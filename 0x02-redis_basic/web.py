@@ -2,45 +2,25 @@
 """
 web.py
 """
-import redis
 import requests
-from functools import wraps
+import redis
 
-r = redis.Redis()
-
-
-def count_requests(func):
-    """Decorator to count how many times
-    a URL was accessed.
-    """
-    @wraps(func)
-    def wrapper(url):
-        r.incr(f"count:{url}")
-        return func(url)
-    return wrapper
+redis_client = redis.Redis()
 
 
-def cache_response(func):
-    """Decorator to cache the
-    response of a URL fetch.
-    """
-    @wraps(func)
-    def wrapper(url):
-        cached = r.get(url)
-        if cached:
-            return cached.decode("utf-8")
-        else:
-            html = func(url)
-            r.setex(url, 10, html)
-            return html
-    return wrapper
+def get_page(url):
+  """
+  Fetches a webpage and caches the content with
+  expiration in Redis.
+  Tracks access count for the URL using Redis.
+  """
+  cached_content = redis_client.get(url)
+  if cached_content:
+    access_count = int(redis_client.incr(f"count:{url}")
+    return cached_content.decode()
 
-
-@count_requests
-@cache_response
-def get_page(url: str) -> str:
-    """Fetches the HTML content of a URL,
-    with caching and request counting.
-    """
-    response = requests.get(url)
-    return response.text
+  response = requests.get(url)
+  content = response.text
+  redis_client.set(url, content, ex=10)
+  redis_client.incr(f"count:{url}")
+  return content
