@@ -9,29 +9,18 @@ import functools
 from typing import Union, Callable, Optional
 
 
-def replay(func: Callable) -> None:
+def replay(fn: Callable) -> None:
+    """Replay
     """
-    Display the history of calls of a particular function.
+    redis = redis.Redis()
+    input_key = fn.__qualname__ + ":inputs"
+    output_key = fn.__qualname__ + ":outputs"
 
-    Args:
-    func (Callable): The function to display the history for.
-    """
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    qualname = func.__qualname__
-    inputs_key = f"{qualname}:inputs"
-    outputs_key = f"{qualname}:outputs"
-
-    inputs = r.lrange(inputs_key, 0, -1)
-    outputs = r.lrange(outputs_key, 0, -1)
-
-    count = r.get(qualname)
-    print(f"{qualname} was called {count.decode('utf-8')} times:")
-
-    for input_, output in zip(inputs, outputs):
-        input_ = input_.decode('utf-8')
-        output = output.decode('utf-8')
-        print(f"{qualname}{input_} -> {output}")
-
+    count = redis.llen(input_key)
+    for i in range(count):
+        input = redis.lindex(input_key, i)
+        output = redis.lindex(output_key, i)
+        print(f"{input}: {output}")
 
 def count_calls(method: Callable) -> Callable:
     """Count calls
