@@ -5,8 +5,21 @@ original type
 """
 import redis
 import uuid
+import functools
 from typing import Union, Callable, Optional
 
+
+def count_calls(method: Callable) -> Callable:
+    """Count calls
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """Wrapper
+        """
+        key = method.__qualname__
+        self._redis.incr(key)
+        return method(self, *args, **kwargs)
+    return wrapper
 
 class Cache:
     """Cache class
@@ -19,6 +32,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Generate random key
         """
